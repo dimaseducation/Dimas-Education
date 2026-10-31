@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dimas Education - WebApp Intelektual</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Playfair Display (Serif Intelektual), Inter (Sans-serif), Amiri (Arab) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,400;1,600&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        serif: ['Playfair Display', 'serif'],
+                        sans: ['Inter', 'sans-serif'],
+                        arabic: ['Amiri', 'serif'],
+                    },
+                    colors: {
+                        academic: {
+                            50: '#f4f6f8',
+                            100: '#e5e9ef',
+                            800: '#1e293b',
+                            900: '#0f172a',
+                            gold: '#c5a059',
+                            goldhover: '#b08c46'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* CSS untuk menutup tampilan bawaan Blogger sepenuhnya */
+        html, body {
+            margin: 0 !important;
+            padding: 0 !important;
+            width: 100% !important;
+            min-height: 100vh !important;
+            background-color: #f8fafc;
+        }
+        /* Style Font Khusus Teks Arab */
+        .font-arabic-custom {
+            font-family: 'Amiri', serif;
+            line-height: 2.2;
+            direction: rtl;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="font-sans text-slate-800 bg-slate-50 antialiased selection:bg-amber-100 selection:text-amber-900">
+
+    <!-- Thumbnail Postingan Blogger Tersembunyi (Abaikan pada tampilan UI) -->
+    <div style="display:none !important;" id="blogger-hidden-thumbnail">
+        <img src="https://images.unsplash.com/photo-1457369804613-52c61a468e7d?q=80&w=600&auto=format&fit=crop" alt="Dimas Education Thumbnail" />
+    </div>
+
+    <!-- KONFIGURASI SAKLAR DEPLOYMENT -->
+    <script>
+        // Set IS_PREVIEW = true untuk pengujian frontend lokal / Canvas
+        // Set IS_PREVIEW = false dan isi GAS_URL jika sudah dideploy ke Google Apps Script
+        const IS_PREVIEW = false; 
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbxn4wXP1lF_y_OetR5YYYVqPaDgzUE50mUmVZkZo2Q2SWVk_RLS4TvaDuAMCAtp4vtY/exec";
+
+        // DATA DUMMY UNTUK MODES PREVIEW
+        const DUMMY_QUOTES = [
+            {
+                id: 1,
+                teks_quote: "Pendidikan bukanlah persiapan untuk hidup; pendidikan adalah hidup itu sendiri.",
+                teks_arab: "العِلْمُ يَرْفَعُ بَيْتًا لا عَمَادَ لَهُ ، وَالجَهْلُ يَهْدِمُ بَيْتَ العِزِّ وَالشَّرَفِ",
+                sumber_tokoh: "John Dewey & Mahfuzhat",
+                tanggal: "2026-03-20"
+            },
+            {
+                id: 2,
+                teks_quote: "Barangsiapa yang menempuh jalan untuk mencari ilmu, maka Allah akan meMudahkan baginya jalan menuju surga.",
+                teks_arab: "مَنْ سَلَكَ طَرِيقًا يَلْتَمِسُ فِيهِ عِلْمًا سَهَّلَ اللَّهُ لَهُ بِهِ طَرِيقًا إِلَى الْجَنَّةِ",
+                sumber_tokoh: "HR. Muslim",
+                tanggal: "2026-03-21"
+            },
+            {
+                id: 3,
+                teks_quote: "Keraguan adalah awal dari kebijaksanaan. Bertanyalah untuk memahami, bukan sekadar mendebat.",
+                teks_arab: "مَنْ قَلَّ صِدْقُهُ قَلَّ صَدِيقُهُ",
+                sumber_tokoh: "René Descartes",
+                tanggal: "2026-03-22"
+            }
+        ];
+
+        const DUMMY_MATERI = [
+            {
+                id: 1,
+                judul: "Epistemologi Pemikiran Modern dan Tantangan Era Digital",
+                kategori: "Filsafat & Sains",
+                ringkasan: "Kajian kritis terhadap perkembangan teori pengetahuan di abad ke-21 serta adaptasi intelektual muslim.",
+                link_blogger: "#",
+                tanggal: "2026-03-15"
+            },
+            {
+                id: 2,
+                judul: "Metodologi Riset Kualitatif: Dari Teori ke Praktik",
+                kategori: "Akademik",
+                ringkasan: "Panduan komprehensif merancang penelitian sosial dengan pendekatan hermeneutika dan analisis wacana.",
+                link_blogger: "#",
+                tanggal: "2026-03-18"
+            },
+            {
+                id: 3,
+                judul: "Integrasi Nilai Etika Islam dalam Kecerdasan Buatan (AI)",
+                kategori: "Teknologi & Etika",
+                ringkasan: "Analisis filosofis mengenai implikasi moral pengembangan AI dan batas etis otomatisasi keputusan.",
+                link_blogger: "#",
+                tanggal: "2026-03-22"
+            }
+        ];
+    </script>
+
+    <!-- WRAPPER UTAMA -->
+    <div id="app" class="min-h-screen flex flex-col justify-between">
+
+        <!-- HEADER / NAVIGATION BAR (MOBILE & DESKTOP) -->
+        <header class="sticky top-0 z-40 bg-slate-900/95 backdrop-blur-md text-white border-b border-slate-800 shadow-md">
+            <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex items-center justify-between h-16">
+                    <!-- Brand Logo -->
+                    <div class="flex items-center space-x-3 cursor-pointer" onclick="switchTab('home')">
+                        <div class="w-9 h-9 rounded-lg bg-amber-600 flex items-center justify-center font-serif text-white text-xl font-bold shadow-inner">
+                            D
+                        </div>
+                        <div>
+                            <span class="font-serif text-lg sm:text-xl font-bold tracking-wide text-slate-100">DIMAS</span>
+                            <span class="font-serif text-lg sm:text-xl font-normal text-amber-500 tracking-wider">EDUCATION</span>
+                        </div>
+                    </div>
+
+                    <!-- Desktop Nav Links -->
+                    <nav class="hidden md:flex items-center space-x-8 text-sm font-medium">
+                        <button onclick="switchTab('home')" class="hover:text-amber-400 transition-colors flex items-center gap-2 text-slate-300">
+                            <i class="fa-solid fa-house text-xs"></i> Beranda
+                        </button>
+                        <button onclick="switchTab('materi')" class="hover:text-amber-400 transition-colors flex items-center gap-2 text-slate-300">
+                            <i class="fa-solid fa-book-open text-xs"></i> Materi
+                        </button>
+                        <button onclick="switchTab('quotes')" class="hover:text-amber-400 transition-colors flex items-center gap-2 text-slate-300">
+                            <i class="fa-solid fa-quote-right text-xs"></i> Quotes
+                        </button>
+                        <button id="nav-login-btn" onclick="openLoginModal()" class="px-4 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-white font-semibold transition-all shadow-md text-xs tracking-wider uppercase">
+                            <i class="fa-solid fa-lock mr-1"></i> Admin Login
+                        </button>
+                        <button id="nav-logout-btn" onclick="handleLogout()" class="hidden px-4 py-2 rounded-lg bg-rose-700 hover:bg-rose-600 text-white font-semibold transition-all shadow-md text-xs tracking-wider uppercase">
+                            <i class="fa-solid fa-right-from-bracket mr-1"></i> Logout
+                        </button>
+                    </nav>
+
+                    <!-- Mobile Hamburger Button -->
+                    <div class="md:hidden flex items-center">
+                        <button id="mobile-menu-btn" onclick="toggleMobileMenu()" class="p-2 rounded-md text-slate-300 hover:text-white hover:bg-slate-800 focus:outline-none">
+                            <i class="fa-solid fa-bars text-xl" id="menu-icon"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mobile Drawer Menu -->
+            <div id="mobile-menu" class="hidden md:hidden bg-slate-900 border-b border-slate-800 px-4 pt-2 pb-4 space-y-2">
+                <button onclick="switchTab('home'); toggleMobileMenu()" class="w-full text-left px-3 py-2 rounded-md text-base font-medium text-slate-200 hover:bg-slate-800 hover:text-amber-400">
+                    <i class="fa-solid fa-house w-6 text-amber-500"></i> Beranda
+                </button>
+                <button onclick="switchTab('materi'); toggleMobileMenu()" class="w-full text-left px-3 py-2 rounded-md text-base font-medium text-slate-200 hover:bg-slate-800 hover:text-amber-400">
+                    <i class="fa-solid fa-book-open w-6 text-amber-500"></i> Daftar Materi
+                </button>
+                <button onclick="switchTab('quotes'); toggleMobileMenu()" class="w-full text-left px-3 py-2 rounded-md text-base font-medium text-slate-200 hover:bg-slate-800 hover:text-amber-400">
+                    <i class="fa-solid fa-quote-right w-6 text-amber-500"></i> Quotes Intelektual
+                </button>
+                <div class="pt-2 border-t border-slate-800">
+                    <button id="mobile-login-btn" onclick="openLoginModal(); toggleMobileMenu()" class="w-full text-center px-4 py-2 rounded-md bg-amber-600 hover:bg-amber-500 text-white font-medium text-sm">
+                        <i class="fa-solid fa-lock mr-1"></i> Admin Login
+                    </button>
+                    <button id="mobile-logout-btn" onclick="handleLogout(); toggleMobileMenu()" class="hidden w-full text-center px-4 py-2 rounded-md bg-rose-700 hover:bg-rose-600 text-white font-medium text-sm">
+                        <i class="fa-solid fa-right-from-bracket mr-1"></i> Logout (Admin)
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- MAIN CONTENT CONTAINER -->
+        <main class="flex-grow max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
+
+            <!-- TAB 1: BERANDA / DASHBOARD -->
+            <section id="tab-home" class="space-y-8 sm:space-y-12">
+                
+                <!-- Hero Description Section -->
+                <div class="bg-white rounded-2xl p-6 sm:p-10 shadow-sm border border-slate-200/80 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-amber-50 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none"></div>
+                    <div class="max-w-3xl">
+                        <span class="inline-block px-3 py-1 bg-amber-100 text-amber-900 text-xs font-semibold rounded-full tracking-wide uppercase mb-3">
+                            Ruang Literasi & Pemikiran
+                        </span>
+                        <h1 class="font-serif text-2xl sm:text-4xl text-slate-900 font-bold leading-tight mb-4">
+                            Dimas Education — Diskurso Intelektual & Khazanah Ilmu
+                        </h1>
+                        <p class="text-slate-600 text-sm sm:text-base leading-relaxed mb-6">
+                            Platform dokumentasi gagasan, kajian metodologi, serta sintesis antara filsafat, sains, dan sains keislaman. Dirancang untuk memperluas cakrawala berpikir secara kritis, analitis, dan solutif.
+                        </p>
+                        <div class="flex flex-wrap gap-3">
+                            <button onclick="switchTab('materi')" class="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white text-xs sm:text-sm font-semibold rounded-xl transition shadow-sm flex items-center gap-2">
+                                Jelajahi Materi <i class="fa-solid fa-arrow-right"></i>
+                            </button>
+                            <button onclick="getRandomQuote()" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs sm:text-sm font-semibold rounded-xl transition border border-slate-300 flex items-center gap-2">
+                                <i class="fa-solid fa-shuffle text-amber-600"></i> Quote Lainnya
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Featured Quotes Section (Intelektual & Arab Font) -->
+                <div class="bg-slate-900 text-white rounded-2xl p-6 sm:p-10 shadow-xl border border-slate-800 relative">
+                    <div class="flex justify-between items-center mb-6 border-b border-slate-800 pb-4">
+                        <div class="flex items-center space-x-2">
+                            <i class="fa-solid fa-quote-left text-amber-500 text-xl"></i>
+                            <h2 class="font-serif text-lg sm:text-xl font-bold tracking-wide">Mutiara Hikmah & Quote Intelektual</h2>
+                        </div>
+                        <span class="text-xs font-mono text-slate-400 bg-slate-800 px-2.5 py-1 rounded-md border border-slate-700">Daily Reflection</span>
+                    </div>
+
+                    <!-- Display Quote Container -->
+                    <div id="quote-display-box" class="space-y-6 min-h-[160px] flex flex-col justify-center">
+                        <!-- Content inserted via JS -->
+                    </div>
+
+                    <div class="mt-6 pt-4 border-t border-slate-800/80 flex justify-end">
+                        <button onclick="getRandomQuote()" class="text-xs text-amber-400 hover:text-amber-300 font-medium flex items-center gap-1.5 transition">
+                            <i class="fa-solid fa-rotate"></i> Acak Kutipan
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Ringkasan Materi Terbaru -->
+                <div>
+                    <div class="flex justify-between items-end mb-6">
+                        <div>
+                            <h2 class="font-serif text-xl sm:text-2xl font-bold text-slate-900">Materi & Artikel Terbaru</h2>
+                            <p class="text-xs sm:text-sm text-slate-500">Pilihan topik kajian terkini yang siap dipelajari</p>
+                        </div>
+                        <button onclick="switchTab('materi')" class="text-xs sm:text-sm font-semibold text-amber-700 hover:text-amber-800 flex items-center gap-1">
+                            Lihat Semua <i class="fa-solid font-bold fa-chevron-right text-xs"></i>
+                        </button>
+                    </div>
+
+                    <!-- Cards Grid -->
+                    <div id="home-materi-grid" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <!-- Loaded dynamically -->
+                    </div>
+                </div>
+
+            </section>
+
+            <!-- TAB 2: DAFTAR MATERI FULL -->
+            <section id="tab-materi" class="hidden space-y-6">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                    <div>
+                        <h1 class="font-serif text-2xl font-bold text-slate-900">Katalog Materi Pembelajaran</h1>
+                        <p class="text-sm text-slate-500">Temukan gagasan dan topik pembahasan secara rinci</p>
+                    </div>
+                    <!-- Admin Action Button -->
+                    <button id="admin-add-materi-btn" onclick="openMateriModal()" class="hidden px-4 py-2.5 bg-amber-600 hover:bg-amber-500 text-white font-semibold text-xs rounded-xl shadow-md transition flex items-center gap-2">
+                        <i class="fa-solid fa-plus"></i> Tambah Materi Baru
+                    </button>
+                </div>
+
+                <!-- List Content -->
+                <div id="full-materi-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Dynamic Items -->
+                </div>
+            </section>
+
+            <!-- TAB 3: DAFTAR QUOTES FULL -->
+            <section id="tab-quotes" class="hidden space-y-6">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                    <div>
+                        <h1 class="font-serif text-2xl font-bold text-slate-900">Arsip Kutipan & Hikmah</h1>
+                        <p class="text-sm text-slate-500">Kumpulan pemikiran tokoh dunia dan literatur Arab klasik</p>
+                    </div>
+                    <!-- Admin Action Button -->
+                    <button id="admin-add-quote-btn" onclick="openQuoteModal()" class="hidden px-4 py-2.5 bg-amber-600 hover:bg-amber-500 text-white font-semibold text-xs rounded-xl shadow-md transition flex items-center gap-2">
+                        <i class="fa-solid fa-plus"></i> Tambah Quote Baru
+                    </button>
+                </div>
+
+                <div id="full-quotes-list" class="space-y-4">
+                    <!-- Dynamic Quotes -->
+                </div>
+            </section>
+
+        </main>
+
+        <!-- FOOTER -->
+        <footer class="bg-slate-900 border-t border-slate-800 text-slate-400 py-8">
+            <div class="max-w-6xl mx-auto px-4 text-center sm:flex sm:justify-between sm:items-center text-xs space-y-4 sm:space-y-0">
+                <div>
+                    <p class="font-serif text-slate-200 font-semibold text-sm">Dimas Education &copy; 2026</p>
+                    <p class="text-slate-500 mt-0.5">Platform WebApp Intelektual Terintegrasi Blogger & GAS</p>
+                </div>
+                <div class="flex justify-center space-x-6 text-slate-400">
+                    <span class="hover:text-amber-400 cursor-pointer" onclick="switchTab('home')">Beranda</span>
+                    <span class="hover:text-amber-400 cursor-pointer" onclick="switchTab('materi')">Materi</span>
+                    <span class="hover:text-amber-400 cursor-pointer" onclick="switchTab('quotes')">Quotes</span>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- MODAL 1: LOGIN ADMIN -->
+    <div id="modal-login" class="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 border border-slate-200 relative">
+            <button onclick="closeModal('modal-login')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+            
+            <div class="text-center mb-6">
+                <div class="w-12 h-12 bg-amber-100 text-amber-700 rounded-full flex items-center justify-center mx-auto mb-3 text-xl">
+                    <i class="fa-solid fa-user-shield"></i>
+                </div>
+                <h3 class="font-serif text-xl font-bold text-slate-900">Autentikasi Admin</h3>
+                <p class="text-xs text-slate-500 mt-1">Masukkkan akun admin Dimas Education</p>
+            </div>
+
+            <form onsubmit="handleLoginSubmit(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Username</label>
+                    <input type="text" id="login-username" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-amber-500 focus:outline-none text-sm" placeholder="Masukkan username">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Password</label>
+                    <input type="password" id="login-password" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-amber-500 focus:outline-none text-sm" placeholder="••••••••">
+                </div>
+                <div id="login-error-msg" class="hidden text-xs text-rose-600 bg-rose-50 p-2.5 rounded-lg border border-rose-200">
+                    Username atau password salah!
+                </div>
+                <button type="submit" class="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white font-semibold text-sm rounded-xl transition shadow-md">
+                    Masuk Panel Admin
+                </button>
+            </form>
+            <p class="text-[10px] text-center text-slate-400 mt-4">Demo Preview: admin / edudigital</p>
+        </div>
+    </div>
+
+    <!-- MODAL 2: FORM TAMBAH/EDIT QUOTE -->
+    <div id="modal-quote" class="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-6 border border-slate-200 relative max-h-[90vh] overflow-y-auto">
+            <button onclick="closeModal('modal-quote')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+            
+            <h3 class="font-serif text-xl font-bold text-slate-900 mb-4" id="modal-quote-title">Tambah Quote Baru</h3>
+
+            <form onsubmit="handleSaveQuote(event)" class="space-y-4">
+                <input type="hidden" id="quote-id">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Kutipan Bahasa Indonesia / Inggris</label>
+                    <textarea id="quote-teks" required rows="3" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-amber-500 text-sm focus:outline-none" placeholder="Masukkan kutipan..."></textarea>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Kutipan Bahasa Arab (Opsional)</label>
+                    <textarea id="quote-arab" rows="3" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-amber-500 font-arabic-custom text-lg focus:outline-none" placeholder="الْنَّصُّ بِالْلُغَةِ الْعَرَبِيَّةِ..."></textarea>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Sumber Tokoh / Kitab / Penulis</label>
+                    <input type="text" id="quote-sumber" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-amber-500 text-sm focus:outline-none" placeholder="Contoh: Ibnu Khaldun / Albert Einstein">
+                </div>
+                <div class="flex justify-end space-x-3 pt-2">
+                    <button type="button" onclick="closeModal('modal-quote')" class="px-4 py-2 bg-slate-100 text-slate-700 rounded-xl text-xs font-semibold hover:bg-slate-200">Batal</button>
+                    <button type="submit" class="px-5 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-xl text-xs font-semibold shadow-md">Simpan Quote</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 3: FORM TAMBAH/EDIT MATERI -->
+    <div id="modal-materi" class="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-6 border border-slate-200 relative max-h-[90vh] overflow-y-auto">
+            <button onclick="closeModal('modal-materi')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+            
+            <h3 class="font-serif text-xl font-bold text-slate-900 mb-4" id="modal-materi-title">Tambah Judul Materi Baru</h3>
+
+            <form onsubmit="handleSaveMateri(event)" class="space-y-4">
+                <input type="hidden" id="materi-id">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Judul Materi</label>
+                    <input type="text" id="materi-judul" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-amber-500 text-sm focus:outline-none" placeholder="Masukkan judul materi...">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Kategori</label>
+                    <input type="text" id="materi-kategori" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-amber-500 text-sm focus:outline-none" placeholder="Contoh: Filsafat / Metode Riset / Sejarah">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Ringkasan Materi</label>
+                    <textarea id="materi-ringkasan" required rows="3" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-amber-500 text-sm focus:outline-none" placeholder="Penjelasan singkat mengenai materi..."></textarea>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Link URL Postingan Blogger (Opsional)</label>
+                    <input type="url" id="materi-link" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-amber-500 text-sm focus:outline-none" placeholder="https://dimaseducation.blogspot.com/...">
+                </div>
+                <div class="flex justify-end space-x-3 pt-2">
+                    <button type="button" onclick="closeModal('modal-materi')" class="px-4 py-2 bg-slate-100 text-slate-700 rounded-xl text-xs font-semibold hover:bg-slate-200">Batal</button>
+                    <button type="submit" class="px-5 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-xl text-xs font-semibold shadow-md">Simpan Materi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- LOGIKA JAVASCRIPT APP -->
+    <script>
+        // State Management Global
+        let currentQuotes = [];
+        let currentMateri = [];
+        let activeQuoteIndex = 0;
+        let isAdminLoggedIn = false;
+
+        // Inisialisasi Aplikasi saat Load
+        document.addEventListener("DOMContentLoaded", () => {
+            loadInitialData();
+        });
+
+        // Toggle Mobile Hamburger Menu
+        function toggleMobileMenu() {
+            const menu = document.getElementById("mobile-menu");
+            menu.classList.toggle("hidden");
+        }
+
+        // Switch Tab Navigation
+        function switchTab(tabName) {
+            document.getElementById("tab-home").classList.add("hidden");
+            document.getElementById("tab-materi").classList.add("hidden");
+            document.getElementById("tab-quotes").classList.add("hidden");
+
+            document.getElementById(`tab-${tabName}`).classList.remove("hidden");
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Load Data (Local Dummy or GAS Server)
+        function loadInitialData() {
+            if (IS_PREVIEW) {
+                console.log("Mode Preview Aktif: Memuat data dummy lokal");
+                currentQuotes = [...DUMMY_QUOTES];
+                currentMateri = [...DUMMY_MATERI];
+                renderAllUI();
+            } else {
+                fetchFromGAS('getData', {}, (response) => {
+                    if(response && response.status === 'success') {
+                        currentQuotes = response.quotes || [];
+                        currentMateri = response.materi || [];
+                        renderAllUI();
+                    }
+                });
+            }
+        }
+
+        // Render All UI Sections
+        function renderAllUI() {
+            renderFeaturedQuote();
+            renderHomeMateri();
+            renderFullMateri();
+            renderFullQuotes();
+        }
+
+        // Render Featured Quote (Hero Home)
+        function renderFeaturedQuote() {
+            const box = document.getElementById("quote-display-box");
+            if (!currentQuotes || currentQuotes.length === 0) {
+                box.innerHTML = `<p class="text-slate-400 text-center italic">Belum ada quote yang ditambahkan.</p>`;
+                return;
+            }
+
+            const item = currentQuotes[activeQuoteIndex % currentQuotes.length];
+
+            let arabHTML = item.teks_arab ? 
+                `<div class="font-arabic-custom text-2xl sm:text-3xl text-amber-400 text-right leading-loose mb-3 tracking-wide">${item.teks_arab}</div>` : '';
+
+            box.innerHTML = `
+                ${arabHTML}
+                <blockquote class="font-serif text-lg sm:text-xl italic text-slate-100 leading-relaxed">
+                    "${item.teks_quote}"
+                </blockquote>
+                <div class="text-xs sm:text-sm font-sans font-medium text-amber-500 mt-2 flex items-center gap-2">
+                    <span class="w-6 h-[1px] bg-amber-500"></span> — ${item.sumber_tokoh}
+                </div>
+            `;
+        }
+
+        // Random Quote Switcher
+        function getRandomQuote() {
+            if (currentQuotes.length <= 1) return;
+            let nextIndex;
+            do {
+                nextIndex = Math.floor(Math.random() * currentQuotes.length);
+            } while (nextIndex === activeQuoteIndex);
+            
+            activeQuoteIndex = nextIndex;
+            renderFeaturedQuote();
+        }
+
+        // Render Home Materi Grid (Limit 3)
+        function renderHomeMateri() {
+            const grid = document.getElementById("home-materi-grid");
+            const items = currentMateri.slice(0, 3);
+
+            if (items.length === 0) {
+                grid.innerHTML = `<p class="text-slate-500 text-sm col-span-3">Belum ada materi tersedia.</p>`;
+                return;
+            }
+
+            grid.innerHTML = items.map(m => `
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition flex flex-col justify-between">
+                    <div>
+                        <span class="inline-block px-2.5 py-0.5 bg-slate-100 text-slate-700 text-[11px] font-semibold rounded-md uppercase mb-3">
+                            ${m.kategori}
+                        </span>
+                        <h3 class="font-serif text-lg font-bold text-slate-900 mb-2 line-clamp-2">${m.judul}</h3>
+                        <p class="text-xs sm:text-sm text-slate-600 line-clamp-3 leading-relaxed mb-4">${m.ringkasan}</p>
+                    </div>
+                    <div class="pt-3 border-t border-slate-100 flex items-center justify-between">
+                        <span class="text-[11px] text-slate-400"><i class="fa-regular fa-calendar mr-1"></i>${m.tanggal}</span>
+                        <a href="${m.link_blogger && m.link_blogger !== '#' ? m.link_blogger : 'javascript:void(0)'}" 
+                           onclick="${m.link_blogger && m.link_blogger !== '#' ? '' : 'alert(\'Link artikel penuh belum ditautkan.\')'}" 
+                           class="text-xs font-semibold text-amber-700 hover:text-amber-800">
+                            Baca Selengkapnya <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                        </a>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Render Full Materi Page
+        function renderFullMateri() {
+            const grid = document.getElementById("full-materi-grid");
+            if (currentMateri.length === 0) {
+                grid.innerHTML = `<p class="text-slate-500 text-sm">Belum ada materi tersedia.</p>`;
+                return;
+            }
+
+            grid.innerHTML = currentMateri.map(m => `
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm relative flex flex-col justify-between">
+                    <div>
+                        <div class="flex justify-between items-start mb-3">
+                            <span class="px-2.5 py-0.5 bg-amber-50 text-amber-800 border border-amber-200/60 text-[11px] font-semibold rounded-md uppercase">
+                                ${m.kategori}
+                            </span>
+                            ${isAdminLoggedIn ? `
+                                <div class="flex space-x-1">
+                                    <button onclick="editMateri(${m.id})" class="p-1.5 text-slate-400 hover:text-amber-600"><i class="fa-solid fa-pen-to-square"></i></button>
+                                    <button onclick="deleteMateri(${m.id})" class="p-1.5 text-slate-400 hover:text-rose-600"><i class="fa-solid fa-trash"></i></button>
+                                </div>
+                            ` : ''}
+                        </div>
+                        <h3 class="font-serif text-xl font-bold text-slate-900 mb-2">${m.judul}</h3>
+                        <p class="text-sm text-slate-600 leading-relaxed mb-4">${m.ringkasan}</p>
+                    </div>
+                    <div class="pt-4 border-t border-slate-100 flex items-center justify-between text-xs">
+                        <span class="text-slate-400"><i class="fa-regular fa-calendar mr-1"></i>${m.tanggal}</span>
+                        <a href="${m.link_blogger && m.link_blogger !== '#' ? m.link_blogger : 'javascript:void(0)'}" 
+                           onclick="${m.link_blogger && m.link_blogger !== '#' ? '' : 'alert(\'Link artikel belum ditautkan.\')'}" 
+                           class="font-semibold text-slate-900 hover:text-amber-700 bg-slate-100 px-3 py-1.5 rounded-lg transition">
+                            Buka Artikel <i class="fa-solid fa-arrow-right ml-1 text-[10px]"></i>
+                        </a>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Render Full Quotes Page
+        function renderFullQuotes() {
+            const list = document.getElementById("full-quotes-list");
+            if (currentQuotes.length === 0) {
+                list.innerHTML = `<p class="text-slate-500 text-sm">Belum ada quote tersedia.</p>`;
+                return;
+            }
+
+            list.innerHTML = currentQuotes.map(q => `
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-3 relative">
+                    ${isAdminLoggedIn ? `
+                        <div class="absolute top-4 right-4 flex space-x-1">
+                            <button onclick="editQuote(${q.id})" class="p-1.5 text-slate-400 hover:text-amber-600"><i class="fa-solid fa-pen-to-square"></i></button>
+                            <button onclick="deleteQuote(${q.id})" class="p-1.5 text-slate-400 hover:text-rose-600"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    ` : ''}
+                    
+                    ${q.teks_arab ? `<div class="font-arabic-custom text-2xl text-amber-900 text-right leading-loose">${q.teks_arab}</div>` : ''}
+                    
+                    <p class="font-serif text-base text-slate-800 italic">"${q.teks_quote}"</p>
+                    
+                    <div class="flex justify-between items-center text-xs text-slate-500 pt-2 border-t border-slate-100">
+                        <span class="font-semibold text-amber-700">— ${q.sumber_tokoh}</span>
+                        <span>${q.tanggal}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Modal Controls
+        function openLoginModal() {
+            document.getElementById("modal-login").classList.remove("hidden");
+        }
+        function closeModal(id) {
+            document.getElementById(id).classList.add("hidden");
+        }
+
+        // Login Handler
+        function handleLoginSubmit(e) {
+            e.preventDefault();
+            const u = document.getElementById("login-username").value;
+            const p = document.getElementById("login-password").value;
+            const err = document.getElementById("login-error-msg");
+
+            if (IS_PREVIEW) {
+                if (u === "admin" && p === "edudigital") {
+                    setAdminState(true);
+                    closeModal("modal-login");
+                    err.classList.add("hidden");
+                } else {
+                    err.classList.remove("hidden");
+                }
+            } else {
+                fetchFromGAS('login', { username: u, password: p }, (res) => {
+                    if (res && res.status === 'success') {
+                        setAdminState(true);
+                        closeModal("modal-login");
+                        err.classList.add("hidden");
+                    } else {
+                        err.classList.remove("hidden");
+                    }
+                });
+            }
+        }
+
+        // Set Login / Logout UI State
+        function setAdminState(loggedIn) {
+            isAdminLoggedIn = loggedIn;
+            if (loggedIn) {
+                document.getElementById("nav-login-btn").classList.add("hidden");
+                document.getElementById("nav-logout-btn").classList.remove("hidden");
+                document.getElementById("mobile-login-btn").classList.add("hidden");
+                document.getElementById("mobile-logout-btn").classList.remove("hidden");
+                
+                document.getElementById("admin-add-materi-btn").classList.remove("hidden");
+                document.getElementById("admin-add-quote-btn").classList.remove("hidden");
+            } else {
+                document.getElementById("nav-login-btn").classList.remove("hidden");
+                document.getElementById("nav-logout-btn").classList.add("hidden");
+                document.getElementById("mobile-login-btn").classList.remove("hidden");
+                document.getElementById("mobile-logout-btn").classList.add("hidden");
+
+                document.getElementById("admin-add-materi-btn").classList.add("hidden");
+                document.getElementById("admin-add-quote-btn").classList.add("hidden");
+            }
+            renderAllUI();
+        }
+
+        function handleLogout() {
+            setAdminState(false);
+        }
+
+        // Form Quote CRUD Actions
+        function openQuoteModal() {
+            document.getElementById("quote-id").value = "";
+            document.getElementById("quote-teks").value = "";
+            document.getElementById("quote-arab").value = "";
+            document.getElementById("quote-sumber").value = "";
+            document.getElementById("modal-quote-title").innerText = "Tambah Quote Baru";
+            document.getElementById("modal-quote").classList.remove("hidden");
+        }
+
+        function editQuote(id) {
+            const item = currentQuotes.find(q => q.id === id);
+            if (!item) return;
+            document.getElementById("quote-id").value = item.id;
+            document.getElementById("quote-teks").value = item.teks_quote;
+            document.getElementById("quote-arab").value = item.teks_arab || "";
+            document.getElementById("quote-sumber").value = item.sumber_tokoh;
+            document.getElementById("modal-quote-title").innerText = "Edit Quote";
+            document.getElementById("modal-quote").classList.remove("hidden");
+        }
+
+        function handleSaveQuote(e) {
+            e.preventDefault();
+            const id = document.getElementById("quote-id").value;
+            const data = {
+                id: id ? parseInt(id) : Date.now(),
+                teks_quote: document.getElementById("quote-teks").value,
+                teks_arab: document.getElementById("quote-arab").value,
+                sumber_tokoh: document.getElementById("quote-sumber").value,
+                tanggal: new Date().toISOString().split('T')[0]
+            };
+
+            if (IS_PREVIEW) {
+                if (id) {
+                    const idx = currentQuotes.findIndex(q => q.id === parseInt(id));
+                    if (idx !== -1) currentQuotes[idx] = data;
+                } else {
+                    currentQuotes.unshift(data);
+                }
+                closeModal("modal-quote");
+                renderAllUI();
+            } else {
+                fetchFromGAS('saveQuote', data, (res) => {
+                    if (res.status === 'success') {
+                        loadInitialData();
+                        closeModal("modal-quote");
+                    }
+                });
+            }
+        }
+
+        function deleteQuote(id) {
+            if (!confirm("Apakah Anda yakin ingin menghapus quote ini?")) return;
+            if (IS_PREVIEW) {
+                currentQuotes = currentQuotes.filter(q => q.id !== id);
+                renderAllUI();
+            } else {
+                fetchFromGAS('deleteQuote', { id: id }, (res) => {
+                    if (res.status === 'success') loadInitialData();
+                });
+            }
+        }
+
+        // Form Materi CRUD Actions
+        function openMateriModal() {
+            document.getElementById("materi-id").value = "";
+            document.getElementById("materi-judul").value = "";
+            document.getElementById("materi-kategori").value = "";
+            document.getElementById("materi-ringkasan").value = "";
+            document.getElementById("materi-link").value = "";
+            document.getElementById("modal-materi-title").innerText = "Tambah Judul Materi Baru";
+            document.getElementById("modal-materi").classList.remove("hidden");
+        }
+
+        function editMateri(id) {
+            const item = currentMateri.find(m => m.id === id);
+            if (!item) return;
+            document.getElementById("materi-id").value = item.id;
+            document.getElementById("materi-judul").value = item.judul;
+            document.getElementById("materi-kategori").value = item.kategori;
+            document.getElementById("materi-ringkasan").value = item.ringkasan;
+            document.getElementById("materi-link").value = item.link_blogger || "";
+            document.getElementById("modal-materi-title").innerText = "Edit Judul Materi";
+            document.getElementById("modal-materi").classList.remove("hidden");
+        }
+
+        function handleSaveMateri(e) {
+            e.preventDefault();
+            const id = document.getElementById("materi-id").value;
+            const data = {
+                id: id ? parseInt(id) : Date.now(),
+                judul: document.getElementById("materi-judul").value,
+                kategori: document.getElementById("materi-kategori").value,
+                ringkasan: document.getElementById("materi-ringkasan").value,
+                link_blogger: document.getElementById("materi-link").value || "#",
+                tanggal: new Date().toISOString().split('T')[0]
+            };
+
+            if (IS_PREVIEW) {
+                if (id) {
+                    const idx = currentMateri.findIndex(m => m.id === parseInt(id));
+                    if (idx !== -1) currentMateri[idx] = data;
+                } else {
+                    currentMateri.unshift(data);
+                }
+                closeModal("modal-materi");
+                renderAllUI();
+            } else {
+                fetchFromGAS('saveMateri', data, (res) => {
+                    if (res.status === 'success') {
+                        loadInitialData();
+                        closeModal("modal-materi");
+                    }
+                });
+            }
+        }
+
+        function deleteMateri(id) {
+            if (!confirm("Apakah Anda yakin ingin menghapus materi ini?")) return;
+            if (IS_PREVIEW) {
+                currentMateri = currentMateri.filter(m => m.id !== id);
+                renderAllUI();
+            } else {
+                fetchFromGAS('deleteMateri', { id: id }, (res) => {
+                    if (res.status === 'success') loadInitialData();
+                });
+            }
+        }
+
+        // Helper komunikasi HTTP ke GAS WebApp Backend
+        function fetchFromGAS(action, payload = {}, callback) {
+            const url = `${GAS_URL}?action=${action}`;
+            fetch(url, {
+                method: 'POST',
+                mode: 'cors',
+                headers: { 'Content-Type': 'text/plain' },
+                body: JSON.stringify(payload)
+            })
+            .then(res => res.json())
+            .then(data => callback(data))
+            .catch(err => console.error("Error communicating with GAS Backend:", err));
+        }
+    </script>
+</body>
+</html>
